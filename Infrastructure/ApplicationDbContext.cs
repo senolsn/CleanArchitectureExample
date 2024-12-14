@@ -17,6 +17,13 @@ namespace Infrastructure
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            #region Aciklama
+            /*Burada herhangi bir DbSet<Webinar> Webinars tanımlaması yapmamamıza rağmen Infrastructure'da bulunan Configurations içerisinde WebinarConfiguration.cs
+            dosyası "WebinarConfiguration : IEntityTypeConfiguration<Webinar>" şeklinde implemente edildiğinden dolayı aşağıdaki kodda da Assembly içerisindeki tüm 
+            Entity Configuration sınıflarını otomatik olarak bulur ve uygular.
+            */
+            #endregion
+
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
         }
     }
