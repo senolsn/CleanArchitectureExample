@@ -8,6 +8,10 @@ namespace Presentation.Controllers
 {
     public sealed class WebinarsController : ApiController
     {
+        //Senaryo: ASP.NET Core'dan Minimal API'ye Geçiş. Bu gibi durumlarda WebAPI'e bağımlı oluruz. Bunu önlemek için Controller'ları presentation katmanına taşırız.
+        //Bir diğer unsur ise WebAPI'da (normalde de olmamalı zaten ama) logic işlemleri kesinlikle olmamalıdır. Yarın öbürgün Web katmanı değiştiğinde bu logic'lerin de taşınması gerekir.
+        //Normalde de logic'ler Web katmanında olmamalı fakat projelerde git gide karmaşıklık arttıkça bazı durumlar ortaya çıkabilir. Bu durumlardan dolayı Presentation katmanı oluşturarak ileriye dönük
+        //defansif bir yaklaşım benimsenmiş olur. İleride herhangi bir framework değişikliği olsa da (RestAPI => MınımalAPI) projemiz minimum şekilde etkilenecektir. 
 
         [HttpGet("{webinarId:guid}")]
         [ProducesResponseType(typeof(WebinarResponse), StatusCodes.Status200OK)]

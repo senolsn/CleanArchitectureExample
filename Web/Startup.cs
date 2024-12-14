@@ -45,8 +45,13 @@ public class Startup
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "Web", Version = "v1" });
         });
 
+        //PostgreSQL
+        //services.AddDbContext<ApplicationDbContext>(builder => 
+        //    builder.UseNpgsql(Configuration.GetConnectionString("Application")));
+        
         services.AddDbContext<ApplicationDbContext>(builder =>
-            builder.UseNpgsql(Configuration.GetConnectionString("Application")));
+            builder.UseSqlServer(Configuration.GetConnectionString("Application")));
+
 
         services.AddScoped<IWebinarRepository, WebinarRepository>();
 
