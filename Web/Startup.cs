@@ -9,6 +9,8 @@ using Microsoft.EntityFrameworkCore;
 
 using Microsoft.OpenApi.Models;
 using Web.Middleware;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Web;
 
@@ -20,18 +22,32 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
+        #region Presentation Katmanýnda yer alan Controllerlarý, Web katmanýnýn bir parçasý olarak tanýtmak.
+        //Controller'lar baþka bir assembly'de (Presentation) tanýmlandýysa, bu metodla o assembly eklenir. 
         var presentationAssembly = typeof(Presentation.AssemblyReference).Assembly;
 
         services.AddControllers()
             .AddApplicationPart(presentationAssembly);
+        #endregion
 
+        #region MediatR kullanýlarak CQRS Pattern'ý uygulamak.
         var applicationAssembly = typeof(Application.AssemblyReference).Assembly;
 
         services.AddMediatR(applicationAssembly);
+        #endregion
 
+        #region MediatR pipeline'ýna bir davranýþ eklemek.
+        /*
+            IPipelineBehavior<,>: Herhangi bir Command veya Query çalýþmadan önce ya da sonra ek iþlemler yapmanýzý saðlar.
+            ValidationBehavior: Gelen isteklerin doðrulamasýný yapmak için kullanýlýr. 
+        */
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        #endregion
 
+        #region FluentValidation kütüphanesindeki validatorlarý otomatik olarak tespit edip. Dependency Injection Container'a ekler.
+        //Application'ýn Assembly (Derlenmiþ Kod) içinde validasyon sýnýflarýný tespit ederek DI Container'a ekler.
         services.AddValidatorsFromAssembly(applicationAssembly);
+        #endregion
 
         services.AddSwaggerGen(c =>
         {
@@ -45,7 +61,7 @@ public class Startup
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "Web", Version = "v1" });
         });
 
-        //PostgreSQL
+        //PostgreSQL :
         //services.AddDbContext<ApplicationDbContext>(builder => 
         //    builder.UseNpgsql(Configuration.GetConnectionString("Application")));
         
