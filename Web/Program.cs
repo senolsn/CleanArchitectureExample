@@ -5,12 +5,16 @@ namespace Web;
 
 public class Program
 {
+    //Bu metot uygulama baþlatýldýðýnda çalýþan ilk metottur.
     public static async Task Main(string[] args)
     {
+        //CreateHostBuilder bir web projesini ayaða kaldýrýðýmda o sitenin yayýnlanacak yani o siteyi barýndýracaðýmýz olan ortamý oluþturur.
         var webHost = CreateHostBuilder(args).Build();
 
+        //Veritabaný migrasyonlarýný uygulamak için çaðrýlan asenkron bir metottur.
         await ApplyMigrations(webHost.Services);
 
+        //Oluþturduðumuz barýnma ortamýný kullanarak web uygulamasýný baþlatmamýzý saðlar.
         await webHost.RunAsync();
     }
 

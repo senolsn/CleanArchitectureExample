@@ -22,33 +22,34 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
-        #region Presentation Katmanýnda yer alan Controllerlarý, Web katmanýnýn bir parçasý olarak tanýtmak.
-        //Controller'lar baþka bir assembly'de (Presentation) tanýmlandýysa, bu metodla o assembly eklenir. 
+        #region Presentation Katmaninda yer alan Controllerlari, Web katmaninin bir pariasi olarak tanitmak.
+        //Controller'lar baÅŸka bir assembly'de (Presentation) tanimlandiysa, bu metodla o assembly eklenir. 
         var presentationAssembly = typeof(Presentation.AssemblyReference).Assembly;
 
         services.AddControllers()
             .AddApplicationPart(presentationAssembly);
         #endregion
 
-        #region MediatR kullanýlarak CQRS Pattern'ý uygulamak.
+        #region MediatR kullanilarak CQRS Pattern'i uygulamak.
         var applicationAssembly = typeof(Application.AssemblyReference).Assembly;
 
         services.AddMediatR(applicationAssembly);
         #endregion
 
-        #region MediatR pipeline'ýna bir davranýþ eklemek.
+        #region MediatR pipeline'ina bir davraniÅŸ eklemek.
         /*
-            IPipelineBehavior<,>: Herhangi bir Command veya Query çalýþmadan önce ya da sonra ek iþlemler yapmanýzý saðlar.
-            ValidationBehavior: Gelen isteklerin doðrulamasýný yapmak için kullanýlýr. 
+            IPipelineBehavior<,>: Herhangi bir Command veya Query Ã§alÄ±ÅŸmadan Ã¶nce ya da sonra ek iÅŸlemler yapmanÄ±zÄ± saÄŸlar.
+            ValidationBehavior: Gelen isteklerin doÄŸrulamasÄ±nÄ± yapmak iÃ§in kullanÄ±lÄ±r. 
         */
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         #endregion
 
-        #region FluentValidation kütüphanesindeki validatorlarý otomatik olarak tespit edip. Dependency Injection Container'a ekler.
-        //Application'ýn Assembly (Derlenmiþ Kod) içinde validasyon sýnýflarýný tespit ederek DI Container'a ekler.
+        #region FluentValidation kutuphanesindeki validatorlari otomatik olarak tespit edip. Dependency Injection Container'a ekler.
+        //Application'ï¿½n Assembly (Derlenmiï¿½ Kod) iï¿½inde validasyon sï¿½nï¿½flarï¿½nï¿½ tespit ederek DI Container'a ekler.
         services.AddValidatorsFromAssembly(applicationAssembly);
         #endregion
 
+        #region Swagger'Ä± yapÄ±landÄ±rmak iÃ§in kullanÄ±lan kodlar.
         services.AddSwaggerGen(c =>
         {
             var presentationDocumentationFile = $"{presentationAssembly.GetName().Name}.xml";
@@ -60,14 +61,16 @@ public class Startup
 
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "Web", Version = "v1" });
         });
+        #endregion
 
+        #region VeritabanÄ± ayarlarÄ±
         //PostgreSQL :
         //services.AddDbContext<ApplicationDbContext>(builder => 
         //    builder.UseNpgsql(Configuration.GetConnectionString("Application")));
-        
+
         services.AddDbContext<ApplicationDbContext>(builder =>
             builder.UseSqlServer(Configuration.GetConnectionString("Application")));
-
+        #endregion
 
         services.AddScoped<IWebinarRepository, WebinarRepository>();
 
