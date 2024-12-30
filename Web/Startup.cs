@@ -45,7 +45,7 @@ public class Startup
         #endregion
 
         #region FluentValidation kutuphanesindeki validatorlari otomatik olarak tespit edip. Dependency Injection Container'a ekler.
-        //Application'�n Assembly (Derlenmi� Kod) i�inde validasyon s�n�flar�n� tespit ederek DI Container'a ekler.
+        //Application'ın Assembly (Derlenmiş Kod) içinde validasyon sınıflarını tespit ederek DI Container'a ekler.
         services.AddValidatorsFromAssembly(applicationAssembly);
         #endregion
 
@@ -72,15 +72,11 @@ public class Startup
             builder.UseSqlServer(Configuration.GetConnectionString("Application")));
         #endregion
 
-        services.AddScoped<IWebinarRepository, WebinarRepository>();
+        #region Invertion of Control Container yapılandırılması.
+        services.AddInfrastructureServices();
+        services.AddWebServices();
+        #endregion
 
-        services.AddScoped<IUnitOfWork>(
-            factory => factory.GetRequiredService<ApplicationDbContext>());
-
-        services.AddScoped<IDbConnection>(
-            factory => factory.GetRequiredService<ApplicationDbContext>().Database.GetDbConnection());
-
-        services.AddTransient<ExceptionHandlingMiddleware>();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
