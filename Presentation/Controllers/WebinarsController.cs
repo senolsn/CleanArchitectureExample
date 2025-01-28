@@ -3,9 +3,11 @@ using Application.Webinars.Queries.GetWebinarById;
 using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Presentation.Controllers
 {
+    [Authorize]
     public sealed class WebinarsController : ApiController
     {
         //Senaryo: ASP.NET Core'dan Minimal API'ye Geçiş. Bu gibi durumlarda WebAPI'e bağımlı oluruz. Bunu önlemek için Controller'ları presentation katmanına taşırız.

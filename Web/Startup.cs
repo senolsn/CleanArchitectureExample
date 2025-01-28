@@ -6,11 +6,16 @@ using Infrastructure;
 using Infrastructure.Repositories;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 using Microsoft.OpenApi.Models;
 using Web.Middleware;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using Infrastructure.Authentication;
+using Application.Abstractions.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace Web;
 
@@ -22,7 +27,7 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
-        #region Presentation Katmaninda yer alan Controllerlari, Web katmaninin bir pariasi olarak tanitmak.
+        #region Presentation Katmaninda yer alan Controllerlari, Web katmaninin bir parçasi olarak tanitmak.
         //Controller'lar başka bir assembly'de (Presentation) tanimlandiysa, bu metodla o assembly eklenir. 
         var presentationAssembly = typeof(Presentation.AssemblyReference).Assembly;
 
@@ -73,10 +78,25 @@ public class Startup
         #endregion
 
         #region Invertion of Control Container yapılandırılması.
-        services.AddInfrastructureServices();
+        services.AddInfrastructureServices(Configuration);
         services.AddWebServices();
         #endregion
 
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = Configuration["Jwt:Issuer"],
+                    ValidAudience = Configuration["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(Configuration["Jwt:SecretKey"]))
+                };
+            });
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -95,6 +115,8 @@ public class Startup
         app.UseHttpsRedirection();
 
         app.UseRouting();
+
+        app.UseAuthentication();
 
         app.UseAuthorization();
 

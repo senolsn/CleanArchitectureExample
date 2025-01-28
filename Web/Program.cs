@@ -8,13 +8,13 @@ public class Program
     //Bu metot uygulama baþlatýldýðýnda çalýþan ilk metottur.
     public static async Task Main(string[] args)
     {
-        //CreateHostBuilder bir web projesini ayaða kaldýrýðýmda o sitenin yayýnlanacak yani o siteyi barýndýracaðýmýz olan ortamý oluþturur.
+        //CreateHostBuilder bir web projesini ayaga kaldirdigimda o sitenin yayýnlanacak yani o siteyi barindiracagimiz olan ortamý olusturur.
         var webHost = CreateHostBuilder(args).Build();
 
-        //Veritabaný migrasyonlarýný uygulamak için çaðrýlan asenkron bir metottur.
+        //Veritabaný migrasyonlarýný uygulamak için cagirilan asenkron bir metottur.
         await ApplyMigrations(webHost.Services);
 
-        //Oluþturduðumuz barýnma ortamýný kullanarak web uygulamasýný baþlatmamýzý saðlar.
+        //Olusturdugumuz barinma ortamini kullanarak web uygulamasýný baslatmamizi saðlar.
         await webHost.RunAsync();
     }
 
