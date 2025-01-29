@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Application.Webinars.Commands.UpdateWebinar;
+using Application.Webinars.Commands.DeleteWebinar;
 
 namespace Presentation.Controllers
 {
@@ -19,6 +20,7 @@ namespace Presentation.Controllers
         [HttpGet("{webinarId:guid}")]
         [ProducesResponseType(typeof(WebinarResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [AllowAnonymous]
         public async Task<IActionResult> GetWebinar(Guid webinarId, CancellationToken cancellationToken)
         {
             var query = new GetWebinarByIdQuery(webinarId);
@@ -31,6 +33,7 @@ namespace Presentation.Controllers
         [HttpPost]
         [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [AllowAnonymous]
         public async Task<IActionResult> CreateWebinar([FromBody] CreateWebinarRequest request, CancellationToken cancellationToken)
         {
             var command = request.Adapt<CreateWebinarCommand>();
@@ -40,16 +43,13 @@ namespace Presentation.Controllers
             return CreatedAtAction(nameof(GetWebinar), new { webinarId }, webinarId);
         }
 
-        [HttpPut("{id:guid}")]
+        [HttpPut]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [AllowAnonymous]
-        public async Task<IActionResult> UpdateWebinar(
-            Guid id,                                    // Sadece URL'den ID alıyoruz
-            [FromBody] UpdateWebinarCommandRequest request, 
-            CancellationToken cancellationToken)
+        public async Task<IActionResult> UpdateWebinar([FromBody] UpdateWebinarCommandRequest request, CancellationToken cancellationToken)
         {
-            var command = new UpdateWebinarCommand(id, request.Name, request.ScheduledOn);
+            var command = new UpdateWebinarCommand(request.Id, request.Name, request.ScheduledOn);
             var webinarId = await Sender.Send(command, cancellationToken);
 
             return Ok(new { webinarId });
@@ -61,6 +61,18 @@ namespace Presentation.Controllers
             * 2- 200 OK + Veri => Güncellenen verinin son halini döner.
             * İki yaklaşım da tercih edilir. Best pratice olarak 204 No Content tercih edilebilir.
             */
+        }
+
+        [HttpDelete]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [AllowAnonymous]
+        public async Task<IActionResult> DeleteWebinar([FromBody] DeleteWebinarCommandRequest request, CancellationToken cancellationToken)
+        {
+            var command = new DeleteWebinarCommand(request.Id);
+            var webinarId = await Sender.Send(command,cancellationToken);
+
+            return Ok(new { webinarId});
         }
     }
 }

@@ -6,6 +6,7 @@ namespace Domain.Abstractions
     {
         void Insert(Webinar webinar);
         void Update(Webinar webinar);
+        void Delete(Webinar webinar);
         Task<Webinar> GetWebinarById(Guid id);
     }
 }
