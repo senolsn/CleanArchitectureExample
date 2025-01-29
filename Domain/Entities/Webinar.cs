@@ -17,7 +17,7 @@ namespace Domain.Entities
             
         }
 
-        public string Name { get; private set; }
-        public DateTime ScheduledOn { get; private set; }
+        public string Name { get; set; }
+        public DateTime ScheduledOn { get; set; }
     }
 }

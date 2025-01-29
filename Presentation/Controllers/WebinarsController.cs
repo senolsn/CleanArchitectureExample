@@ -4,6 +4,7 @@ using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Application.Webinars.Commands.UpdateWebinar;
 
 namespace Presentation.Controllers
 {
@@ -37,6 +38,29 @@ namespace Presentation.Controllers
             var webinarId = await Sender.Send(command, cancellationToken);
 
             return CreatedAtAction(nameof(GetWebinar), new { webinarId }, webinarId);
+        }
+
+        [HttpPut("{id:guid}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [AllowAnonymous]
+        public async Task<IActionResult> UpdateWebinar(
+            Guid id,                                    // Sadece URL'den ID alıyoruz
+            [FromBody] UpdateWebinarCommandRequest request, 
+            CancellationToken cancellationToken)
+        {
+            var command = new UpdateWebinarCommand(id, request.Name, request.ScheduledOn);
+            var webinarId = await Sender.Send(command, cancellationToken);
+
+            return Ok(new { webinarId });
+
+
+            /*
+            * PUT/UPDATE işlemleri için REST standartlarında genellikle iki yaklaşım vardır:
+            * 1- 204 No Content => return NoContent();
+            * 2- 200 OK + Veri => Güncellenen verinin son halini döner.
+            * İki yaklaşım da tercih edilir. Best pratice olarak 204 No Content tercih edilebilir.
+            */
         }
     }
 }
