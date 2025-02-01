@@ -1,22 +1,14 @@
-using System.Data;
-using Application.Behaviors;
-using Domain.Abstractions;
 using FluentValidation;
 using Infrastructure;
-using Infrastructure.Repositories;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-
 using Microsoft.OpenApi.Models;
 using Web.Middleware;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using Infrastructure.Authentication;
-using Application.Abstractions.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Application.Common.Behaviors;
 
 namespace Web;
 

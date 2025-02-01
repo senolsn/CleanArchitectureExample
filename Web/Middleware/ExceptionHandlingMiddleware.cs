@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using Application.Exceptions;
+using Application.Common.Exceptions;
 using Domain.Exceptions.Base;
 
 

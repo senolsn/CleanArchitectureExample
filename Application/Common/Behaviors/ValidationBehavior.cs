@@ -1,9 +1,9 @@
-﻿using Application.Abstractions.Messaging;
+using Application.Abstractions.Messaging;
 using FluentValidation;
 using MediatR;
-using ValidationException = Application.Exceptions.ValidationException;
+using ValidationException = Application.Common.Exceptions.ValidationException;
 
-namespace Application.Behaviors;
+namespace Application.Common.Behaviors;
 
 public sealed class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : class, ICommand<TResponse>

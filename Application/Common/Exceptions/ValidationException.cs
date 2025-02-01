@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Domain.Exceptions.Base;
 
-namespace Application.Exceptions;
+namespace Application.Common.Exceptions;
 
 public sealed class ValidationException : BadRequestException
 {
