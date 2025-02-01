@@ -6,6 +6,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Authorization;
+using Application.Users.Commands.LoginUser;
+using Application.Users.Commands.RegisterUser;
 
 namespace Presentation.Controllers
 {
@@ -16,18 +18,6 @@ namespace Presentation.Controllers
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly IConfiguration _configuration;
-
-        public class RegisterModel
-        {
-            public string Email { get; set; }
-            public string Password { get; set; }
-        }
-
-        public class LoginModel
-        {
-            public string Email { get; set; }
-            public string Password { get; set; }
-        }
 
         public AccountController(
             UserManager<IdentityUser> userManager,
@@ -41,10 +31,10 @@ namespace Presentation.Controllers
 
         [HttpPost("register")]
         [AllowAnonymous]
-        public async Task<IActionResult> Register(RegisterModel model)
+        public async Task<IActionResult> Register(RegisterUserCommandRequest request)
         {
-            var user = new IdentityUser { UserName = model.Email, Email = model.Email };
-            var result = await _userManager.CreateAsync(user, model.Password);
+            var user = new IdentityUser { UserName = request.Email, Email = request.Email };
+            var result = await _userManager.CreateAsync(user, request.Password);
 
             if (result.Succeeded)
             {
@@ -56,15 +46,15 @@ namespace Presentation.Controllers
 
         [HttpPost("login")]
         [AllowAnonymous]
-        public async Task<IActionResult> Login(LoginModel model)
+        public async Task<IActionResult> Login(LoginUserCommandRequest request)
         {
-            var user = await _userManager.FindByEmailAsync(model.Email);
+            var user = await _userManager.FindByEmailAsync(request.Email);
             if (user == null)
             {
                 return BadRequest(new { Message = "Kullanıcı bulunamadı." });
             }
 
-            var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
+            var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
 
             if (result.Succeeded)
             {
