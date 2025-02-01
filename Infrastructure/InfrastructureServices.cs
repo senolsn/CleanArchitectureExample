@@ -14,7 +14,6 @@ namespace Infrastructure
         public static void AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddScoped<IWebinarRepository, WebinarRepository>();
-            services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IJwtProvider, JwtProvider>();
 
             services.AddScoped<IUnitOfWork>(

@@ -1,46 +1,33 @@
-using System.Security.Cryptography;
-using System.Text;
 using Application.Abstractions.Messaging;
-using Domain.Abstractions;
-using Domain.Entities;
+using Microsoft.AspNetCore.Identity;
 
 namespace Application.Users.Commands.RegisterUser;
 
 internal sealed class RegisterUserCommandHandler : ICommandHandler<RegisterUserCommand, Guid>
 {
-    private readonly IUserRepository _userRepository;
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly UserManager<IdentityUser> _userManager;
 
-    public RegisterUserCommandHandler(IUserRepository userRepository, IUnitOfWork unitOfWork)
+    public RegisterUserCommandHandler(UserManager<IdentityUser> userManager)
     {
-        _userRepository = userRepository;
-        _unitOfWork = unitOfWork;
+        _userManager = userManager;
     }
 
     public async Task<Guid> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
     {
-        var existingUser = await _userRepository.GetByEmailAsync(request.Email, cancellationToken);
-
-        if (existingUser is not null)
+        var user = new IdentityUser
         {
-            throw new Exception("User with this email already exists");
+            UserName = request.Email,
+            Email = request.Email
+        };
+
+        var result = await _userManager.CreateAsync(user, request.Password);
+
+        if (!result.Succeeded)
+        {
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            throw new Exception($"Kullanıcı oluşturma hatası: {errors}");
         }
 
-        var passwordHash = HashPassword(request.Password);
-
-        var user = new User(Guid.NewGuid(), request.Email, passwordHash);
-
-        _userRepository.Insert(user);
-
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-        return user.Id;
-    }
-
-    private static string HashPassword(string password)
-    {
-        using var sha256 = SHA256.Create();
-        var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-        return Convert.ToBase64String(hashedBytes);
+        return Guid.Parse(user.Id);
     }
 } 

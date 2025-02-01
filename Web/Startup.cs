@@ -16,6 +16,7 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using Infrastructure.Authentication;
 using Application.Abstractions.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 
 namespace Web;
 
@@ -27,6 +28,29 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
+        #region Identity Yapılandırması
+        services.AddIdentity<IdentityUser, IdentityRole>(options =>
+        {
+            // Parola gereksinimleri
+            options.Password.RequireDigit = true; // Parola sayısal karakter içermeli
+            options.Password.RequireLowercase = true; // Parola küçük harf içermeli
+            options.Password.RequireUppercase = true; // Parola büyük harf içermeli
+            options.Password.RequireNonAlphanumeric = true; // Parola özel karakter içermeli
+            options.Password.RequiredLength = 8; // Parola en az 8 karakter olmalı
+            options.Lockout.MaxFailedAccessAttempts = 10; // Maximum başarısız giriş denemesi
+            options.Lockout.AllowedForNewUsers = false; // Yeni kullanıcılar için kilitleme aktif mi?
+
+            // Kullanıcı gereksinimleri
+            options.User.RequireUniqueEmail = true; // Benzersiz e-posta gereksinimi
+            options.SignIn.RequireConfirmedEmail = false; // E-posta doğrulaması isteniyorsa true yapın
+            options.SignIn.RequireConfirmedEmail = true;    // Email doğrulaması gerekli mi?
+            options.SignIn.RequireConfirmedPhoneNumber = false; // Telefon doğrulaması gerekli mi?
+            options.SignIn.RequireConfirmedAccount = true;  // Hesap doğrulaması gerekli mi?
+        })
+        .AddEntityFrameworkStores<ApplicationDbContext>()
+        .AddDefaultTokenProviders();
+        #endregion
+
         #region Presentation Katmaninda yer alan Controllerlari, Web katmaninin bir parçasi olarak tanitmak.
         //Controller'lar başka bir assembly'de (Presentation) tanimlandiysa, bu metodla o assembly eklenir. 
         var presentationAssembly = typeof(Presentation.AssemblyReference).Assembly;
@@ -82,6 +106,7 @@ public class Startup
         services.AddWebServices();
         #endregion
 
+        #region JWT Ayarları
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
@@ -97,6 +122,7 @@ public class Startup
                         Encoding.UTF8.GetBytes(Configuration["Jwt:SecretKey"]))
                 };
             });
+        #endregion
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

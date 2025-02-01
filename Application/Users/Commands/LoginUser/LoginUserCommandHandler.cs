@@ -1,47 +1,43 @@
-using System.Security.Cryptography;
-using System.Text;
 using Application.Abstractions.Authentication;
 using Application.Abstractions.Messaging;
-using Domain.Abstractions;
+using Microsoft.AspNetCore.Identity;
 
 namespace Application.Users.Commands.LoginUser;
 
 internal sealed class LoginUserCommandHandler : ICommandHandler<LoginUserCommand, string>
 {
-    private readonly IUserRepository _userRepository;
+    private readonly UserManager<IdentityUser> _userManager;
+    private readonly SignInManager<IdentityUser> _signInManager;
     private readonly IJwtProvider _jwtProvider;
 
-    public LoginUserCommandHandler(IUserRepository userRepository, IJwtProvider jwtProvider)
+    public LoginUserCommandHandler(
+        UserManager<IdentityUser> userManager,
+        SignInManager<IdentityUser> signInManager,
+        IJwtProvider jwtProvider)
     {
-        _userRepository = userRepository;
+        _userManager = userManager;
+        _signInManager = signInManager;
         _jwtProvider = jwtProvider;
     }
 
     public async Task<string> Handle(LoginUserCommand request, CancellationToken cancellationToken)
     {
-        var user = await _userRepository.GetByEmailAsync(request.Email, cancellationToken);
+        var user = await _userManager.FindByEmailAsync(request.Email);
 
         if (user is null)
         {
-            throw new Exception("User with given email does not exist");
+            throw new Exception("Kullanıcı bulunamadı");
         }
 
-        var passwordHash = HashPassword(request.Password);
+        var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
 
-        if (user.PasswordHash != passwordHash)
+        if (!result.Succeeded)
         {
-            throw new Exception("Invalid password");
+            throw new Exception("Geçersiz şifre");
         }
 
-        var token = _jwtProvider.Generate(user.Id, user.Email);
+        var token = _jwtProvider.Generate(Guid.Parse(user.Id), user.Email);
 
         return token;
-    }
-
-    private static string HashPassword(string password)
-    {
-        using var sha256 = SHA256.Create();
-        var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-        return Convert.ToBase64String(hashedBytes);
     }
 } 
