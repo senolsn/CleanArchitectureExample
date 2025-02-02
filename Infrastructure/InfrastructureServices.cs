@@ -24,8 +24,6 @@ namespace Infrastructure
 
             //Bu satır, appsettings.json'daki JWT ayarlarını JwtOptions sınıfına baglamak icin kullanılıyor. Ancak bu islemi yapabilmek icin Microsoft.Extensions.Options paketine ihtiyacimiz var.
             services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
-
-            services.AddScoped<IJwtProvider, JwtProvider>();
         }
     }
 }

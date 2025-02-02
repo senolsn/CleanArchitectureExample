@@ -35,7 +35,6 @@ public class Startup
             // Kullanıcı gereksinimleri
             options.User.RequireUniqueEmail = true; // Benzersiz e-posta gereksinimi
             options.SignIn.RequireConfirmedEmail = false; // E-posta doğrulaması isteniyorsa true yapın
-            options.SignIn.RequireConfirmedEmail = true;    // Email doğrulaması gerekli mi?
             options.SignIn.RequireConfirmedPhoneNumber = false; // Telefon doğrulaması gerekli mi?
             options.SignIn.RequireConfirmedAccount = true;  // Hesap doğrulaması gerekli mi?
         })

@@ -29,7 +29,7 @@ namespace Presentation.Controllers
             _configuration = configuration;
         }
 
-        [HttpPost("register")]
+        [HttpPost("Register")]
         [AllowAnonymous]
         public async Task<IActionResult> Register(RegisterUserCommandRequest request)
         {
@@ -44,7 +44,7 @@ namespace Presentation.Controllers
             return BadRequest(new { Errors = result.Errors });
         }
 
-        [HttpPost("login")]
+        [HttpPost("Login")]
         [AllowAnonymous]
         public async Task<IActionResult> Login(LoginUserCommandRequest request)
         {

@@ -1,5 +1,6 @@
 using Application.Abstractions.Authentication;
 using Application.Abstractions.Messaging;
+using Domain.Exceptions.Base;
 using Microsoft.AspNetCore.Identity;
 
 namespace Application.Users.Commands.LoginUser;
@@ -26,14 +27,14 @@ internal sealed class LoginUserCommandHandler : ICommandHandler<LoginUserCommand
 
         if (user is null)
         {
-            throw new Exception("Kullanıcı bulunamadı");
+            throw new UserNotFoundException("Kullanıcı bulunamadı");
         }
 
         var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
 
         if (!result.Succeeded)
         {
-            throw new Exception("Geçersiz şifre");
+            throw new BusinessException("Kullanıcı adı veya şifreniz yanlış.");
         }
 
         var token = _jwtProvider.Generate(Guid.Parse(user.Id), user.Email);
