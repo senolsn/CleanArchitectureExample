@@ -1,25 +1,34 @@
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 namespace Web;
 
 public class Program
 {
-    //Bu metot uygulama baþlatýldýðýnda çalýþan ilk metottur.
+    //Bu metot uygulama baÅŸlatÄ±ldÄ±ÄŸÄ±nda Ã§alÄ±ÅŸan ilk metottur.
     public static async Task Main(string[] args)
     {
-        //CreateHostBuilder bir web projesini ayaga kaldirdigimda o sitenin yayýnlanacak yani o siteyi barindiracagimiz olan ortamý olusturur.
+        //CreateHostBuilder bir web projesini ayaga kaldÄ±rdÄ±ÄŸÄ±mda o sitenin yayÄ±nlanacak yani o siteyi barindiracagÄ±mÄ±z olan ortamÄ± olusturur.
+        var builder = WebApplication.CreateBuilder(args);
+
+        // Serilog yapÄ±landÄ±rmasÄ±
+        Log.Logger = new LoggerConfiguration()
+            .ReadFrom.Configuration(builder.Configuration)  // appsettings.json'dan oku
+            .CreateLogger();
+
+        builder.Host.UseSerilog();  // Host'a Serilog'u ekle
+
         var webHost = CreateHostBuilder(args).Build();
 
-        //Veritabaný migrasyonlarýný uygulamak için cagirilan asenkron bir metottur.
         await ApplyMigrations(webHost.Services);
 
-        //Olusturdugumuz barinma ortamini kullanarak web uygulamasýný baslatmamizi saðlar.
         await webHost.RunAsync();
     }
 
     private static IHostBuilder CreateHostBuilder(string[] args) =>
         Host.CreateDefaultBuilder(args)
+            .UseSerilog()  // Burada da ekleyelim
             .ConfigureWebHostDefaults(webBuilder => webBuilder.UseStartup<Startup>());
 
     private static async Task ApplyMigrations(IServiceProvider serviceProvider)

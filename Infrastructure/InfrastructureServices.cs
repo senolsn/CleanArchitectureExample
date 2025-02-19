@@ -2,6 +2,7 @@
 using Domain.Abstractions;
 using Infrastructure.Authentication;
 using Infrastructure.Repositories;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +16,7 @@ namespace Infrastructure
         {
             services.AddScoped<IWebinarRepository, WebinarRepository>();
             services.AddScoped<IJwtProvider, JwtProvider>();
+            services.AddHttpContextAccessor();
 
             services.AddScoped<IUnitOfWork>(
             factory => factory.GetRequiredService<ApplicationDbContext>());

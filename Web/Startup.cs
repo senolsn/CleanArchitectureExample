@@ -9,6 +9,12 @@ using Web.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Application.Common.Behaviors;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Serilog;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 namespace Web;
 
@@ -36,7 +42,7 @@ public class Startup
             options.User.RequireUniqueEmail = true; // Benzersiz e-posta gereksinimi
             options.SignIn.RequireConfirmedEmail = false; // E-posta doğrulaması isteniyorsa true yapın
             options.SignIn.RequireConfirmedPhoneNumber = false; // Telefon doğrulaması gerekli mi?
-            options.SignIn.RequireConfirmedAccount = true;  // Hesap doğrulaması gerekli mi?
+            options.SignIn.RequireConfirmedAccount = false;  // Hesap doğrulaması gerekli mi?
         })
         .AddEntityFrameworkStores<ApplicationDbContext>()
         .AddDefaultTokenProviders();
@@ -62,6 +68,7 @@ public class Startup
             ValidationBehavior: Gelen isteklerin doğrulamasını yapmak için kullanılır. 
         */
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggerBehavior<,>));
         #endregion
 
         #region FluentValidation kutuphanesindeki validatorlari otomatik olarak tespit edip. Dependency Injection Container'a ekler.
@@ -98,21 +105,59 @@ public class Startup
         #endregion
 
         #region JWT Ayarları
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options =>
+        services.AddAuthentication(options => 
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.SaveToken = true;
+            options.RequireHttpsMetadata = false; // Development için false, production'da true olmalı
+            options.TokenValidationParameters = new TokenValidationParameters
             {
-                options.TokenValidationParameters = new TokenValidationParameters
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = Configuration["Jwt:Issuer"],
+                ValidAudience = Configuration["Jwt:Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(Configuration["Jwt:SecretKey"])),
+                ClockSkew = TimeSpan.Zero // Token süresini tam olarak kontrol etmek için
+            };
+
+            options.Events = new JwtBearerEvents
+            {
+                OnAuthenticationFailed = context =>
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = Configuration["Jwt:Issuer"],
-                    ValidAudience = Configuration["Jwt:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(Configuration["Jwt:SecretKey"]))
-                };
-            });
+                    var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Startup>>();
+                    logger.LogError("Authentication failed: {Error}", context.Exception);
+                    return Task.CompletedTask;
+                },
+                OnTokenValidated = context =>
+                {
+                    var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Startup>>();
+                    logger.LogInformation("Token validated. Claims: {Claims}", 
+                        string.Join(", ", context.Principal.Claims.Select(c => $"{c.Type}: {c.Value}")));
+                    return Task.CompletedTask;
+                },
+                OnChallenge = context =>
+                {
+                    var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Startup>>();
+                    logger.LogWarning("Authentication challenge: {Error}", context.Error);
+                    return Task.CompletedTask;
+                },
+                OnMessageReceived = context =>
+                {
+                    var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Startup>>();
+                    logger.LogInformation("Token received in header: {Token}", 
+                        context.Request.Headers["Authorization"].ToString());
+                    return Task.CompletedTask;
+                }
+            };
+        });
         #endregion
     }
 
@@ -136,6 +181,8 @@ public class Startup
         app.UseAuthentication();
 
         app.UseAuthorization();
+
+        app.UseSerilogRequestLogging();
 
         app.UseEndpoints(endpoints => endpoints.MapControllers());
     }

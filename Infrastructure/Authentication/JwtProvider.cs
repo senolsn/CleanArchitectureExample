@@ -18,10 +18,10 @@ public sealed class JwtProvider : IJwtProvider
 
     public string Generate(Guid userId, string email)
     {
-        var claims = new Claim[]
+        var claims = new List<Claim>
         {
-            new(JwtRegisteredClaimNames.Sub, userId.ToString()),
-            new(JwtRegisteredClaimNames.Email, email),
+            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+            new Claim(ClaimTypes.Email, email.ToString()),
         };
 
         var signingCredentials = new SigningCredentials(
@@ -46,11 +46,11 @@ public sealed class JwtProvider : IJwtProvider
 
 #region Infrastructure => Application Baglantisi Hakkinda
 /*
- * ? JwtProvider'da IJwtProvider Application katmanýnda ve JwtProvider'da Infrastructure katmanýnda. Kýsacasý clean Architecture'da Infrastructure katmanýndan Application katmanýna erismek dogru bir yaklasim midir ?
- * Kýsaca evet doðru, bu soruyu aciklayacak olursak eger ;
+ * ? JwtProvider'da IJwtProvider Application katmanï¿½nda ve JwtProvider'da Infrastructure katmanï¿½nda. Kï¿½sacasï¿½ clean Architecture'da Infrastructure katmanï¿½ndan Application katmanï¿½na erismek dogru bir yaklasim midir ?
+ * Kï¿½saca evet doï¿½ru, bu soruyu aciklayacak olursak eger ;
  * Ic katmanlar (Application Domain), dis katmanlardan (Infrastructure ve Presentation) haberdar kesinlikle olmamalidir.
  * Bagimliliklar her zaman dis katmanlardan ic katmanlara olmalidir.
- * Bu yaklasim neden uygulanir ? Cunku ; Application katmani sadece interface'i tanimlar. Implementasyonun nasil yapilacagini Ic katman belirler. Bu durumda dis katman ic katmana bagimlidir.
+ * Bu yaklasim neden uygulanir ? Cunku ; Application katmani sadece interface'i tanimlar. Implementasyonun nasil yapilacagini Ic katman belirler. Bu durumda dis katman ic katmana bagimli olur.
  * Eger tam tersi olsaydi ; IJwtProvider interface'i Infrastructure da olsaydi Application katmani Infrastructure'a bagimli olurdu. Bu da Dependency Rule'a aykiridir. Ve istemedigimiz durumdur.
  */
 #endregion

@@ -17,6 +17,22 @@ namespace Presentation.Controllers
         //Normalde de logic'ler Web katmanında olmamalı fakat projelerde git gide karmaşıklık arttıkça bazı durumlar ortaya çıkabilir. Bu durumlardan dolayı Presentation katmanı oluşturarak ileriye dönük
         //defansif bir yaklaşım benimsenmiş olur. İleride herhangi bir framework değişikliği olsa da (RestAPI => MınımalAPI) projemiz minimum şekilde etkilenecektir. 
 
+        [HttpGet("test")]
+        [AllowAnonymous]
+        public IActionResult Test()
+        {
+            var user = HttpContext.User;
+            var isAuthenticated = user.Identity?.IsAuthenticated ?? false;
+            var claims = user.Claims.Select(c => new { c.Type, c.Value }).ToList();
+
+            return Ok(new { 
+                IsAuthenticated = isAuthenticated,
+                Claims = claims,
+                RequestPath = HttpContext.Request.Path.Value,
+                RequestMethod = HttpContext.Request.Method
+            });
+        }
+
         [HttpGet("{webinarId:guid}")]
         [ProducesResponseType(typeof(WebinarResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -33,7 +49,6 @@ namespace Presentation.Controllers
         [HttpPost]
         [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [AllowAnonymous]
         public async Task<IActionResult> CreateWebinar([FromBody] CreateWebinarRequest request, CancellationToken cancellationToken)
         {
             var command = request.Adapt<CreateWebinarCommand>();
