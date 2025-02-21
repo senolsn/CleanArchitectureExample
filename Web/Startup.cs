@@ -26,6 +26,22 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
+        services.AddHttpContextAccessor();
+        
+        #region MediatR ve Behavior'ların Eklenmesi
+        var applicationAssembly = typeof(Application.AssemblyReference).Assembly;
+        services.AddMediatR(applicationAssembly);
+
+        /*
+            IPipelineBehavior<,>: Herhangi bir Command veya Query çalışmadan önce ya da sonra ek işlemler yapmanızı sağlar.
+            ValidationBehavior: Gelen isteklerin doğrulamasını yapmak için kullanılır. 
+        */
+
+        //MediatR pipeline'ina bir davraniş eklemek.
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggerBehavior<,>));
+        #endregion
+
         #region Identity Yapılandırması
         services.AddIdentity<IdentityUser, IdentityRole>(options =>
         {
@@ -54,21 +70,6 @@ public class Startup
 
         services.AddControllers()
             .AddApplicationPart(presentationAssembly);
-        #endregion
-
-        #region MediatR kullanilarak CQRS Pattern'i uygulamak.
-        var applicationAssembly = typeof(Application.AssemblyReference).Assembly;
-
-        services.AddMediatR(applicationAssembly);
-        #endregion
-
-        #region MediatR pipeline'ina bir davraniş eklemek.
-        /*
-            IPipelineBehavior<,>: Herhangi bir Command veya Query çalışmadan önce ya da sonra ek işlemler yapmanızı sağlar.
-            ValidationBehavior: Gelen isteklerin doğrulamasını yapmak için kullanılır. 
-        */
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggerBehavior<,>));
         #endregion
 
         #region FluentValidation kutuphanesindeki validatorlari otomatik olarak tespit edip. Dependency Injection Container'a ekler.
@@ -166,23 +167,26 @@ public class Startup
         if (env.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
-
             app.UseSwagger();
-
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Web v1"));
         }
 
         app.UseMiddleware<ExceptionHandlingMiddleware>();
 
+        app.UseHttpsRedirection(); //Http isteklerini https'e çevirir.
+
+        // Serilog request logging'i ekle
+        app.UseSerilogRequestLogging(
+        //    options =>
+        //{
+        //    options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+        //}
+        );
+
         app.UseHttpsRedirection();
-
         app.UseRouting();
-
         app.UseAuthentication();
-
         app.UseAuthorization();
-
-        app.UseSerilogRequestLogging();
 
         app.UseEndpoints(endpoints => endpoints.MapControllers());
     }

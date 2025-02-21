@@ -21,7 +21,9 @@ public sealed class JwtProvider : IJwtProvider
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-            new Claim(ClaimTypes.Email, email.ToString()),
+            new Claim(ClaimTypes.Email, email),
+            new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()), //Kullanıcının Id'si
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) //Token'ın belirsiz Id'si
         };
 
         var signingCredentials = new SigningCredentials(
